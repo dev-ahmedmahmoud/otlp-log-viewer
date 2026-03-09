@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Logy | OTLP Log Viewer
 
-## Getting Started
+Logy is a high-performance, premium-designed log dashboard designed to visualize OTLP (OpenTelemetry Protocol) logs. It features advanced data processing pipelines, real-time service grouping, and a responsive histogram view, all optimized for high-volume data streams.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📂 Project Structure
+
+The project follows a feature-based architecture, grouping components, hooks, and utilities by their domain (`logs`).
+
+```text
+src/
+├── features/logs/
+│   ├── components/      # UI components (Atomic/Compositional)
+│   ├── hooks/           # useLogs - data fetching & worker orchestration
+│   ├── types/           # OTLP types and internal application interfaces
+│   ├── utils/           # Transformation logic (normalize, aggregate, sort)
+│   ├── workers/         # Web Worker for CPU-intensive tasks
+│   └── __tests__/       # Comprehensive unit & stress tests
+└── mocks/               # MSW handlers and local server setup
+app/                     # Next.js App Router (Layouts & Pages)
+public/                  # Static assets & MSW Service Worker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🏗️ Architecture & Core Techniques
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. **Off-Main-Thread Processing (Web Workers)**
+Processing 100,000+ log records (normalization, histogram bucketing, and service grouping) can block the main thread for seconds. 
+- **Solution**: We offload the entire data transformation pipeline to a **Dedicated Web Worker**.
+- **Result**: The UI remains responsive at 60fps even during heavy computation. Data is serialized exactly once across the thread boundary as a complete "ready-to-render" package.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. **OTLP Data Normalization**
+Logs often arrive in deeply nested OTLP structures.
+- We implement a linear-time (`O(n)`) normalization pipeline that flattens nested resources and scope logs into a unified `LogEntry` model.
+- Includes automatic timestamp resolution from `timeUnixNano` to ISO standards.
 
-## Learn More
+### 3. **Centralized Design System**
+To ensure visual consistency between the **Logs List** and the **Histogram Distribution**:
+- **Single Source of Truth**: A centralized `LOG_LEVEL_STYLES` map in `types/index.ts` defines colors (Teal for Debug, Violet for Unspecified, etc.) and icons for every severity level.
+- **Dynamic Icons**: Standardized icons (`AlertCircle`, `SearchCode`, etc.) are mapped to log levels globally.
 
-To learn more about Next.js, take a look at the following resources:
+### 4. **Modern UI Components**
+- **Stacked Segment Histogram**: The histogram doesn't just show volume; it uses stacked segments to show the severity distribution *within* each time bucket.
+- **Service-Oriented View**: Supports switching between a flat chronological list and a grouped-by-service view for easier debugging.
+- **Virtualization Ready**: The list is designed to handle large datasets efficiently.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Tech Stack
 
-## Deploy on Vercel
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
+- **State Management**: Custom React Hooks & Web Workers
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **API Mocking**: [MSW (Mock Service Worker)](https://mswjs.io/)
+- **Testing**: [Vitest](https://vitest.dev/) & [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Package Scripts
+
+| Script | Description |
+| :--- | :--- |
+| `npm run dev` | Starts the development server with Turbopack for near-instant refreshes. |
+| `npm run build` | Creates an optimized, production-ready build in the `.next` directory. |
+| `npm run start` | Runs the production-built application. |
+| `npm run test` | Runs the full suite of unit and integration tests using Vitest. |
+| `npm run test:watch` | Starts Vitest in interactive watch mode for TDD. |
+| `npm run test:e2e` | Executes end-to-end browser tests using Cypress. |
+| `npm run lint` | Analyzes code quality and consistency using ESLint. |
+
+---
+
+## 🧪 Testing Strategies
+
+- **MSW (Mock Service Worker)**: Intercepts network requests to provide realistic log data during development and testing without needing a live backend.
+- **Pipeline Stress Tests**: A dedicated stress test (`pipeline.stress.test.ts`) validates that the normalization and transformation logic can handle **100,000 logs** in under **250ms**.
+- **Component Tests**: Verifies UI states, severity mappings, and user interactions (like view switching and row expansion).
