@@ -21,11 +21,11 @@ interface ServiceGroupViewProps {
 
 type VirtualItemData =
   | {
-      type: "header";
-      groupIndex: number;
-      group: ServiceGroup;
-      isExpanded: boolean;
-    }
+    type: "header";
+    groupIndex: number;
+    group: ServiceGroup;
+    isExpanded: boolean;
+  }
   | { type: "log"; logIndex: number; log: LogEntry; isLast: boolean };
 
 const HEADER_ESTIMATE_PX = 60;
@@ -101,8 +101,9 @@ export function ServiceGroupView({ groups }: ServiceGroupViewProps) {
   return (
     <div className="border border-gray-800 rounded-lg overflow-hidden bg-black flex flex-col shadow-xl flex-1 min-h-0 h-full">
       {/* Table Header (shows when flattened to provide context for logs) */}
-      <div className="hidden md:grid md:grid-cols-[140px_150px_1fr] lg:grid-cols-[150px_180px_1fr] gap-4 p-3 border-b border-gray-800 bg-gray-900/50 text-xs font-bold text-gray-400 uppercase tracking-wider">
+      <div className="hidden md:grid md:grid-cols-[140px_120px_150px_1fr] lg:grid-cols-[150px_150px_180px_1fr] gap-4 p-3 border-b border-gray-800 bg-gray-900/50 text-xs font-bold text-gray-400 uppercase tracking-wider">
         <div className="pl-6">Severity</div>
+        <div>Service</div>
         <div>Timestamp</div>
         <div>Body</div>
       </div>
@@ -132,48 +133,50 @@ export function ServiceGroupView({ groups }: ServiceGroupViewProps) {
                 {item.type === "header" ? (
                   <div className="pt-4 pb-2">
                     <div
-                      className="flex items-center justify-between p-3 rounded-t-lg cursor-pointer hover:bg-gray-900 transition-colors bg-gray-900/60 border border-gray-800 shadow-sm"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-3 gap-3 rounded-t-lg cursor-pointer hover:bg-gray-900 transition-colors bg-gray-900/60 border border-gray-800 shadow-sm"
                       onClick={() => toggleGroup(item.group.serviceName)}
                     >
-                      <div className="flex items-center gap-3">
-                        {item.isExpanded ? (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
-                        )}
-                        <div className="bg-indigo-500/10 p-1.5 rounded-md border border-indigo-500/20">
-                          <Server className="w-4 h-4 text-indigo-400" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {item.isExpanded ? (
+                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                          )}
+                          <div className="bg-indigo-500/10 p-1.5 rounded-md border border-indigo-500/20">
+                            <Server className="w-4 h-4 text-indigo-400" />
+                          </div>
                         </div>
-                        <h3 className="font-semibold text-gray-200 text-base">
+                        <h3 className="font-semibold text-gray-200 text-base truncate">
                           {item.group.serviceName}
                         </h3>
 
-                        <span className="flex items-center gap-1.5 ml-3 bg-black/40 px-2 py-0.5 rounded text-xs text-gray-400 border border-gray-700">
+                        <span className="flex-shrink-0 flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded text-xs text-gray-400 border border-gray-700">
                           <span>{item.group.logs.length}</span> logs
                         </span>
+                      </div>
 
-                        <div className="flex gap-2 ml-2">
-                          {LEVEL_ORDER.filter(
-                            (level) => (item.group.levelCounts[level] ?? 0) > 0,
-                          ).map((level) => {
-                            const count = item.group.levelCounts[level]!;
-                            const styles =
-                              LOG_LEVEL_STYLES[level] ??
-                              LOG_LEVEL_STYLES[LogLevel.UNSPECIFIED];
+                      <div className="flex flex-wrap items-center gap-2 ml-10 sm:ml-0">
+                        {LEVEL_ORDER.filter(
+                          (level) => (item.group.levelCounts[level] ?? 0) > 0,
+                        ).map((level) => {
+                          const count = item.group.levelCounts[level]!;
+                          const styles =
+                            LOG_LEVEL_STYLES[level] ??
+                            LOG_LEVEL_STYLES[LogLevel.UNSPECIFIED];
 
-                            return (
+                          return (
+                            <span
+                              key={level}
+                              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${styles.badge}`}
+                            >
                               <span
-                                key={level}
-                                className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium tracking-wide border ${styles.badge}`}
-                              >
-                                <span
-                                  className={`w-2 h-2 rounded-full ${styles.dot}`}
-                                />
-                                {count} {level}
-                              </span>
-                            );
-                          })}
-                        </div>
+                                className={`w-1.5 h-1.5 rounded-full ${styles.dot}`}
+                              />
+                              {count} {level}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                     {/* If collapsed, cap off the bottom border */}
