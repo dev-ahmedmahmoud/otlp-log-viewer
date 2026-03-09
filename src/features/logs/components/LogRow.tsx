@@ -1,59 +1,48 @@
-import { LogEntry, LogLevel } from '../types';
+import { LogEntry, LogLevel, LOG_LEVEL_STYLES } from '../types';
 import { useState } from 'react';
 import { ChevronRight, ChevronDown, AlertCircle, Info, FileWarning, SearchCode } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
+const ICON_CLASSNAME = "w-4 h-4";
+const SEVERITY_ICONS: Record<LogLevel, React.ReactElement> = {
+    [LogLevel.FATAL]: <AlertCircle className={ICON_CLASSNAME} />,
+    [LogLevel.ERROR]: <AlertCircle className={ICON_CLASSNAME} />,
+    [LogLevel.WARN]: <FileWarning className={ICON_CLASSNAME} />,
+    [LogLevel.INFO]: <Info className={ICON_CLASSNAME} />,
+    [LogLevel.DEBUG]: <SearchCode className={ICON_CLASSNAME} />,
+    [LogLevel.UNSPECIFIED]: <SearchCode className={ICON_CLASSNAME} />,
+};
+
 interface LogRowProps {
     log: LogEntry;
+    measureRef?: (node: HTMLDivElement | null) => void;
+    virtualIndex?: number;
 }
 
-export function LogRow({ log }: LogRowProps) {
+export function LogRow({ log, measureRef, virtualIndex }: LogRowProps) {
     const [expanded, setExpanded] = useState(false);
 
-    const getSeverityIcon = (level: string) => {
-        switch (level.toUpperCase()) {
-            case LogLevel.ERROR:
-            case LogLevel.FATAL:
-                return <AlertCircle className="w-4 h-4 text-red-500" />;
-            case LogLevel.WARN:
-                return <FileWarning className="w-4 h-4 text-yellow-500" />;
-            case LogLevel.INFO:
-                return <Info className="w-4 h-4 text-blue-500" />;
-            case LogLevel.DEBUG:
-            default:
-                return <SearchCode className="w-4 h-4 text-gray-400" />;
-        }
-    };
+    const level = (log.severityText in LogLevel)
+        ? log.severityText as LogLevel
+        : LogLevel.UNSPECIFIED;
 
-    const getSeverityColor = (level: string) => {
-        switch (level.toUpperCase()) {
-            case LogLevel.ERROR:
-            case LogLevel.FATAL:
-                return 'text-red-500 bg-red-500/10 border-red-500/20';
-            case LogLevel.WARN:
-                return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-            case LogLevel.INFO:
-                return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
-            case LogLevel.DEBUG:
-            default:
-                return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
-        }
-    };
+    const styles = LOG_LEVEL_STYLES[level];
+    const icon = SEVERITY_ICONS[level];
 
     const timeStr = new Date(log.timestamp).toLocaleTimeString(undefined, {
         hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3
     });
 
     return (
-        <>
+        <div ref={measureRef} data-testid="log-row" data-index={virtualIndex}>
             <div
                 onClick={() => setExpanded(!expanded)}
                 className="group grid grid-cols-[1fr_8fr] md:grid-cols-[140px_150px_1fr] lg:grid-cols-[150px_180px_1fr] gap-4 p-3 border-b border-gray-800/60 hover:bg-gray-800/40 cursor-pointer transition-colors items-start"
             >
                 <div className="flex items-center gap-2">
                     {expanded ? <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />}
-                    <span className={twMerge('text-xs px-2 py-0.5 rounded border uppercase font-medium tracking-wide flex items-center gap-1.5', getSeverityColor(log.severityText))}>
-                        {getSeverityIcon(log.severityText)}
+                    <span className={twMerge('text-xs px-2 py-0.5 rounded border uppercase font-medium tracking-wide flex items-center gap-1.5', styles.badge)}>
+                        <span className={styles.icon}>{icon}</span>
                         <span className="truncate">{log.severityText || 'UNKNOWN'}</span>
                     </span>
                 </div>
@@ -104,6 +93,6 @@ export function LogRow({ log }: LogRowProps) {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }
