@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { OTLPExportLogsServiceRequest } from '../features/logs/types/otlp';
+import { LogLevel } from '../features/logs/types';
 
 export const mockOtlpResponse: OTLPExportLogsServiceRequest = {
     resourceLogs: [
@@ -14,14 +15,14 @@ export const mockOtlpResponse: OTLPExportLogsServiceRequest = {
                     logRecords: [
                         {
                             timeUnixNano: (Date.now() * 1000000).toString(),
-                            severityText: 'ERROR',
+                            severityText: LogLevel.ERROR,
                             severityNumber: 17,
                             body: { stringValue: 'Database connection failed' },
                             attributes: [{ key: 'db.host', value: { stringValue: 'localhost' } }],
                         },
                         {
                             timeUnixNano: ((Date.now() + 1000) * 1000000).toString(),
-                            severityText: 'INFO',
+                            severityText: LogLevel.INFO,
                             severityNumber: 9,
                             body: { stringValue: 'API request successful' },
                             attributes: [{ key: 'http.status_code', value: { intValue: 200 } }],
@@ -41,7 +42,7 @@ export const mockOtlpResponse: OTLPExportLogsServiceRequest = {
                     logRecords: [
                         {
                             timeUnixNano: ((Date.now() + 5000) * 1000000).toString(),
-                            severityText: 'WARN',
+                            severityText: LogLevel.WARN,
                             severityNumber: 13,
                             body: { stringValue: 'Retrying external payment gateway' },
                             attributes: [{ key: 'retry_count', value: { intValue: 3 } }],

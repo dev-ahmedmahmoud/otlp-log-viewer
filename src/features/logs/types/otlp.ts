@@ -1,3 +1,5 @@
+import { LogLevel } from ".";
+
 export interface OTLPKeyValue {
     key: string;
     value: {
@@ -14,9 +16,10 @@ export interface OTLPResource {
 }
 
 export interface OTLPLogRecord {
-    timeUnixNano: string;
+    timeUnixNano?: string;
+    observedTimeUnixNano?: string;
     severityNumber?: number;
-    severityText?: string;
+    severityText?: LogLevel;
     body?: {
         stringValue?: string;
     };

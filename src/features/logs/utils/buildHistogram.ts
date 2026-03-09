@@ -1,4 +1,4 @@
-import { HistogramBucket, LogEntry } from '../types';
+import { HistogramBucket, LogEntry, LogLevel } from '../types';
 
 /**
  * Builds time-based histogram buckets from a flat list of normalized logs.
@@ -46,7 +46,7 @@ export const buildHistogramBuckets = (logs: LogEntry[], bucketCount: number = 30
         const bucket = buckets[index]!;
         bucket.count++;
 
-        const severity = log.severityText || 'UNSPECIFIED';
+        const severity = log.severityText || LogLevel.UNSPECIFIED;
         if (!bucket.levelCounts[severity]) {
             bucket.levelCounts[severity] = 0;
         }

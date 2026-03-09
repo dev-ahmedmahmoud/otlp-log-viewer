@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildHistogramBuckets } from '../../utils/buildHistogram';
-import { LogEntry } from '../../types';
+import { LogEntry, LogLevel } from '../../types';
 
 describe('buildHistogramBuckets', () => {
     it('should return empty array when no logs are provided', () => {
@@ -10,10 +10,10 @@ describe('buildHistogramBuckets', () => {
     it('should accurately bucket log counts over time', () => {
         const baseTime = 10000; // 10 seconds since epoch
         const logs: LogEntry[] = [
-            { timestamp: new Date(baseTime).toISOString(), severityText: 'ERROR' } as LogEntry,
-            { timestamp: new Date(baseTime + 1000).toISOString(), severityText: 'ERROR' } as LogEntry, // bucket 0 (span 1)
-            { timestamp: new Date(baseTime + 4000).toISOString(), severityText: 'INFO' } as LogEntry, // bucket 1
-            { timestamp: new Date(baseTime + 9000).toISOString(), severityText: 'WARN' } as LogEntry, // bucket 2
+            { timestamp: new Date(baseTime).toISOString(), severityText: LogLevel.ERROR } as LogEntry,
+            { timestamp: new Date(baseTime + 1000).toISOString(), severityText: LogLevel.ERROR } as LogEntry, // bucket 0 (span 1)
+            { timestamp: new Date(baseTime + 4000).toISOString(), severityText: LogLevel.INFO } as LogEntry, // bucket 1
+            { timestamp: new Date(baseTime + 9000).toISOString(), severityText: LogLevel.WARN } as LogEntry, // bucket 2
         ];
 
         // Span = 9000ms. 3 buckets => bucket size 3000ms.
@@ -35,8 +35,8 @@ describe('buildHistogramBuckets', () => {
     it('should handle logs that occur at the exact same time', () => {
         const sameTime = new Date().toISOString();
         const logs: LogEntry[] = [
-            { timestamp: sameTime, severityText: 'ERROR' } as LogEntry,
-            { timestamp: sameTime, severityText: 'INFO' } as LogEntry,
+            { timestamp: sameTime, severityText: LogLevel.ERROR } as LogEntry,
+            { timestamp: sameTime, severityText: LogLevel.INFO } as LogEntry,
         ];
 
         const histogram = buildHistogramBuckets(logs, 5);

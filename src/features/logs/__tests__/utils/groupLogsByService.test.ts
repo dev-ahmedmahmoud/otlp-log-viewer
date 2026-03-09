@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { groupLogsByService } from '../../utils/groupLogsByService';
-import { LogEntry } from '../../types';
+import { LogEntry, LogLevel } from '../../types';
 
 describe('groupLogsByService', () => {
     it('should return empty array for formatting', () => {
@@ -10,9 +10,9 @@ describe('groupLogsByService', () => {
     it('should group logs correctly and count errors', () => {
         const logs: LogEntry[] = [
             { serviceName: 'auth-service', severityText: 'INFO' } as LogEntry,
-            { serviceName: 'auth-service', severityText: 'ERROR' } as LogEntry,
-            { serviceName: 'checkout-service', severityText: 'WARN' } as LogEntry,
-            { severityText: 'INFO' } as LogEntry, // missing service name -> unknown-service
+            { serviceName: 'auth-service', severityText: LogLevel.ERROR } as LogEntry,
+            { serviceName: 'checkout-service', severityText: LogLevel.WARN } as LogEntry,
+            { severityText: LogLevel.INFO } as LogEntry, // missing service name -> unknown-service
         ];
 
         const groups = groupLogsByService(logs);

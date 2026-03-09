@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { normalizeLogs } from '../../utils/normalizeLogs';
 import { OTLPExportLogsServiceRequest } from '../../types/otlp';
+import { LogLevel } from '../../types';
 
 describe('normalizeLogs', () => {
     it('should return empty array for null or invalid data', () => {
@@ -24,7 +25,7 @@ describe('normalizeLogs', () => {
                                 {
                                     timeUnixNano: '1738321289139931000',
                                     severityNumber: 17,
-                                    severityText: 'ERROR',
+                                    severityText: LogLevel.ERROR,
                                     body: { stringValue: 'Test error message' },
                                     attributes: [
                                         { key: 'http.status_code', value: { intValue: 500 } },
@@ -34,7 +35,7 @@ describe('normalizeLogs', () => {
                                 {
                                     timeUnixNano: '1738321289140000000',
                                     severityNumber: 9,
-                                    severityText: 'INFO',
+                                    severityText: LogLevel.INFO,
                                     body: { stringValue: 'Test info message' },
                                 },
                             ],
